@@ -13,6 +13,7 @@
             margin: 0;
             padding: 20px;
             overflow: hidden;
+            user-select: none;
         }
         h1 {
             font-size: 2em;
@@ -20,13 +21,20 @@
             text-shadow: 0 0 10px #0f0;
         }
         #cat {
-            font-size: 10em;
+            font-size: 8em;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: all 0.15s ease;
             margin: 20px 0;
+            transform: perspective(500px) translateZ(0);
+            text-shadow: 0 10px 20px rgba(0, 255, 0, 0.3);
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         #cat:active {
-            transform: scale(0.95);
+            transform: perspective(500px) translateZ(-20px) scale(0.9);
+            text-shadow: 0 5px 10px rgba(0, 255, 0, 0.5);
         }
         #coins {
             font-size: 1.5em;
@@ -41,14 +49,17 @@
             cursor: pointer;
             display: inline-block;
             font-family: inherit;
+            transition: all 0.2s;
         }
         .upgrade:hover {
             background: #0f0;
             color: #000;
+            transform: translateY(-2px);
         }
         .upgrade:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
         #upgrades {
             margin-top: 20px;
@@ -60,8 +71,7 @@
     </style>
 </head>
 <body>
-    <h1>devodrag Котик Кликер</h1>
-    <p>Russia | heroku userbot vibes</p>
+    <h1>Котик Кликер</h1>
     <div id="coins">Монеты: 0</div>
     <div id="cat">🐱</div>
     <div class="stats">Монет за гладь: <span id="perClick">1</span></div>
@@ -141,7 +151,7 @@
         });
 
         document.getElementById('upgradeMulti').addEventListener('click', () => {
-            const cost = 100 * Math.pow(5, clickLevel); // Simple scaling
+            const cost = 100 * Math.pow(5, clickLevel);
             if (coins >= cost) {
                 coins -= cost;
                 clickMulti *= 5;
@@ -156,11 +166,7 @@
             } else if (id === 'upgradeAuto') {
                 el.textContent = `Авто-гладильщик (+${clickMulti}/сек) - ${newCost} монет`;
             }
-            if (coins < newCost) {
-                el.disabled = true;
-            } else {
-                el.disabled = false;
-            }
+            el.disabled = coins < newCost;
         }
 
         // Initial update
