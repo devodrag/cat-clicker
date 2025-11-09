@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Котик Кликер - Гладь Кошку!</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #0f0;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #0f0;
+        }
+        #cat {
+            font-size: 10em;
+            cursor: pointer;
+            transition: transform 0.1s;
+            margin: 20px 0;
+        }
+        #cat:active {
+            transform: scale(0.95);
+        }
+        #coins {
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+        .upgrade {
+            background: #111;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            display: inline-block;
+            font-family: inherit;
+        }
+        .upgrade:hover {
+            background: #0f0;
+            color: #000;
+        }
+        .upgrade:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #upgrades {
+            margin-top: 20px;
+        }
+        .stats {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>devodrag Котик Кликер</h1>
+    <p>Russia | heroku userbot vibes</p>
+    <div id="coins">Монеты: 0</div>
+    <div id="cat">🐱</div>
+    <div class="stats">Монет за гладь: <span id="perClick">1</span></div>
+    <div class="stats">Авто-гладь/сек: <span id="auto">0</span></div>
+    
+    <div id="upgrades">
+        <div class="upgrade" id="upgradeClick" data-cost="10" data-multi="2">Улучшить гладь (x2) - 10 монет</div>
+        <div class="upgrade" id="upgradeAuto" data-cost="50" data-multi="1">Авто-гладильщик (+1/сек) - 50 монет</div>
+        <div class="upgrade" id="upgradeMulti" data-cost="100" data-multi="5">Множитель (x5) - 100 монет</div>
+    </div>
+
+    <script>
+        let coins = 0;
+        let perClick = 1;
+        let autoPerSec = 0;
+        let clickMulti = 1;
+        let autoLevel = 0;
+        let clickLevel = 0;
+
+        // Load from localStorage
+        if (localStorage.getItem('catClicker')) {
+            const saved = JSON.parse(localStorage.getItem('catClicker'));
+            coins = saved.coins || 0;
+            perClick = saved.perClick || 1;
+            autoPerSec = saved.autoPerSec || 0;
+            clickMulti = saved.clickMulti || 1;
+            autoLevel = saved.autoLevel || 0;
+            clickLevel = saved.clickLevel || 0;
+        }
+
+        const cat = document.getElementById('cat');
+        const coinsEl = document.getElementById('coins');
+        const perClickEl = document.getElementById('perClick');
+        const autoEl = document.getElementById('auto');
+
+        function updateDisplay() {
+            coinsEl.textContent = `Монеты: ${Math.floor(coins)}`;
+            perClickEl.textContent = perClick * clickMulti;
+            autoEl.textContent = autoPerSec;
+            localStorage.setItem('catClicker', JSON.stringify({
+                coins, perClick, autoPerSec, clickMulti, autoLevel, clickLevel
+            }));
+        }
+
+        cat.addEventListener('click', () => {
+            coins += perClick * clickMulti;
+            updateDisplay();
+        });
+
+        // Auto clicker
+        setInterval(() => {
+            coins += autoPerSec;
+            updateDisplay();
+        }, 1000);
+
+        // Upgrades
+        document.getElementById('upgradeClick').addEventListener('click', () => {
+            const cost = 10 * Math.pow(2, clickLevel);
+            if (coins >= cost) {
+                coins -= cost;
+                clickLevel++;
+                clickMulti *= 2;
+                updateUpgrade('upgradeClick', 10 * Math.pow(2, clickLevel));
+                updateDisplay();
+            }
+        });
+
+        document.getElementById('upgradeAuto').addEventListener('click', () => {
+            const cost = 50 * (autoLevel + 1);
+            if (coins >= cost) {
+                coins -= cost;
+                autoLevel++;
+                autoPerSec += 1 * clickMulti;
+                updateUpgrade('upgradeAuto', 50 * (autoLevel + 1));
+                updateDisplay();
+            }
+        });
+
+        document.getElementById('upgradeMulti').addEventListener('click', () => {
+            const cost = 100 * Math.pow(5, clickLevel); // Simple scaling
+            if (coins >= cost) {
+                coins -= cost;
+                clickMulti *= 5;
+                updateDisplay();
+            }
+        });
+
+        function updateUpgrade(id, newCost) {
+            const el = document.getElementById(id);
+            if (id === 'upgradeClick') {
+                el.textContent = `Улучшить гладь (x${clickMulti * 2}) - ${newCost} монет`;
+            } else if (id === 'upgradeAuto') {
+                el.textContent = `Авто-гладильщик (+${clickMulti}/сек) - ${newCost} монет`;
+            }
+            if (coins < newCost) {
+                el.disabled = true;
+            } else {
+                el.disabled = false;
+            }
+        }
+
+        // Initial update
+        updateDisplay();
+        updateUpgrade('upgradeClick', 10);
+        updateUpgrade('upgradeAuto', 50);
+    </script>
+</body>
+</html>
